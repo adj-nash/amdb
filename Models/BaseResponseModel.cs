@@ -1,6 +1,6 @@
 ﻿namespace MovieDatabase.Models
 {
-    public class BaseResponse
+    public class BaseResponseModel
     {
         public bool Status { get; set; }
 

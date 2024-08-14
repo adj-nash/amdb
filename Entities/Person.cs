@@ -1,4 +1,6 @@
-﻿namespace MovieDatabase.Entities
+﻿using System;
+
+namespace MovieDatabase.Entities
 {
     public class Person
     {
