@@ -6,7 +6,7 @@
 
         public string Title { get; set; }
 
-        public List<int> Actors { get; set; }
+        public List<ActorViewModel> Actors { get; set; }
 
         public string Language { get; set; }
 

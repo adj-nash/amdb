@@ -1,4 +1,5 @@
 ﻿using System;
+using MovieDatabase.Models;
 
 namespace MovieDatabase.Entities
 {

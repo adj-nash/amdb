@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieDatabase.Data;
 using MovieDatabase.Entities;
@@ -25,7 +26,20 @@ namespace MovieDatabase.Controllers
             try
             {
                 var movieCount = _dbContext.Movie.Count();
-                var movieList = _dbContext.Movie.Include(x => x.Actors).Skip(pageIndex * pageSize).Take(pageSize).ToList();
+                var movieList = _dbContext.Movie.Include(x => x.Actors).Skip(pageIndex * pageSize).Take(pageSize).
+                    Select(x => new MovieListViewModel {
+                        Id = x.Id,
+                        Title = x.Title,
+                        Actors = x.Actors.Select(y => new ActorViewModel
+                        { 
+                            Id = y.Id,
+                            Name = y.Name,
+                            DateOfBirth = y.DateOfBirth,
+                        }).ToList(),
+                        CoverImage = x.CoverImage,
+                        Language = x.Language,
+                        ReleaseDate = x.ReleaseDate
+                    }).ToList();
 
                 response.Status = true;
                 response.Message = "Success";
@@ -50,7 +64,21 @@ namespace MovieDatabase.Controllers
 
             try
             {
-                var movie = _dbContext.Movie.Include(x => x.Actors).Where(x => x.Id == id).FirstOrDefault();
+                var movie = _dbContext.Movie.Include(x => x.Actors).Where(x => x.Id == id).Select(x => new MovieDetailsViewModel
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Actors = x.Actors.Select(y => new ActorViewModel
+                    {
+                        Id = y.Id,
+                        Name = y.Name,
+                        DateOfBirth = y.DateOfBirth,
+                    }).ToList(),
+                    CoverImage = x.CoverImage,
+                    Language = x.Language,
+                    ReleaseDate = x.ReleaseDate,
+                    Description = x.Description
+                }).FirstOrDefault();
 
                 if(movie == null)
                 {
@@ -106,9 +134,25 @@ namespace MovieDatabase.Controllers
                     _dbContext.Movie.Add(postedModel);
                     _dbContext.SaveChanges();
 
+                    var responseData = new MovieDetailsViewModel
+                    {
+                        Id = postedModel.Id,
+                        Title = postedModel.Title,
+                        Actors = postedModel.Actors.Select(y => new ActorViewModel
+                        {
+                            Id = y.Id,
+                            Name = y.Name,
+                            DateOfBirth = y.DateOfBirth,
+                        }).ToList(),
+                        CoverImage = postedModel.CoverImage,
+                        Language = postedModel.Language,
+                        ReleaseDate = postedModel.ReleaseDate,
+                        Description = postedModel.Description
+                    };
+
                     response.Status = true;
                     response.Message = "New movie created successfully!";
-                    response.Data = postedModel;
+                    response.Data = responseData;
 
                     return Ok(response);
 
@@ -147,6 +191,7 @@ namespace MovieDatabase.Controllers
                         return BadRequest(response);
 
                     }
+
                     var actors = _dbContext.Person.Where(x => model.Actors.Contains(x.Id)).ToList();
 
                     if (actors.Count != model.Actors.Count)
@@ -192,9 +237,25 @@ namespace MovieDatabase.Controllers
                     _dbContext.SaveChanges();
 
 
+                    var responseData = new MovieDetailsViewModel
+                    {
+                        Id = movieDetails.Id,
+                        Title = movieDetails.Title,
+                        Actors = movieDetails.Actors.Select(y => new ActorViewModel
+                        {
+                            Id = y.Id,
+                            Name = y.Name,
+                            DateOfBirth = y.DateOfBirth,
+                        }).ToList(),
+                        CoverImage = movieDetails.CoverImage,
+                        Language = movieDetails.Language,
+                        ReleaseDate = movieDetails.ReleaseDate,
+                        Description = movieDetails.Description
+                    };
+
                     response.Status = true;
                     response.Message = "Movie updated successfully!";
-                    response.Data = movieDetails;
+                    response.Data = responseData;
 
                     return Ok(response);
 

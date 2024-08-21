@@ -10,7 +10,7 @@ namespace MovieDatabase.Models
 
         public string Description { get; set; }
 
-        public List<ActorViewModel> Actors { get; set; }
+        public List<int> Actors { get; set; }
 
         public string Language { get; set; }
 
