@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "vS5EEHXaN+PMmcYZY9H23YHfUSM2zUZx4/RnsxzGldgdaa+XG4E8SDJTX/F70RbzQ30e0TAr/GuLdFARxJ9dqA==",
+  "dgSpecHash": "4V0aWNTnrda/tB56sWY9amKaOeBczYU8Q6K2pq/PxBy8SXLL7qFafUOPSf5mDzN4LrATDWhqcNSM9HM1Z0t/Cw==",
   "success": true,
   "projectFilePath": "C:\\Users\\alex_\\OneDrive\\Desktop\\dotnet\\MovieDatabase\\MovieDatabase.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\alex_\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\alex_\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\alex_\\.nuget\\packages\\azure.identity\\1.11.3\\azure.identity.1.11.3.nupkg.sha512",
     "C:\\Users\\alex_\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

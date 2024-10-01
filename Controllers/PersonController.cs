@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieDatabase.Data;
@@ -12,10 +13,12 @@ namespace MovieDatabase.Controllers
     public class PersonController : ControllerBase
     {
         private readonly MovieDbContext _dbContext;
+        private readonly AutoMapper.IMapper _mapper;
 
-        public PersonController(MovieDbContext context)
+        public PersonController(MovieDbContext context, AutoMapper.IMapper mapper)
         {
             _dbContext = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -26,13 +29,7 @@ namespace MovieDatabase.Controllers
             try
             {
                 var actorCount = _dbContext.Person.Count();
-                var actorList = _dbContext.Person.Skip(pageIndex * pageSize).Take(pageSize).
-                    Select(x => new ActorViewModel
-                    {
-                        Id = x.Id,
-                        Name = x.Name,
-                        DateOfBirth = x.DateOfBirth
-                    }).ToList();
+                var actorList = _mapper.Map<List<ActorViewModel>>(_dbContext.Person.Skip(pageIndex * pageSize).Take(pageSize).ToList());
 
                 response.Status = true;
                 response.Message = "Success";
@@ -40,7 +37,7 @@ namespace MovieDatabase.Controllers
 
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 response.Status = false;
                 response.Message = "Something went wrong.";
@@ -71,8 +68,9 @@ namespace MovieDatabase.Controllers
                     Id = person.Id,
                     DateOfBirth = person.DateOfBirth,
                     Name = person.Name,
-                    Movies = _dbContext.Movie.Where(x => x.Actors.Contains(person)).Select(x => x.Title).ToArray()
-                };
+                    Movies = _dbContext.Movie.Where(x => x.Actors.Contains(person)).Select(x => x.Title).ToArray(),
+                    CoverImage = _dbContext.Movie.Where(x => x.Actors.Contains(person)).Select(x => x.CoverImage).ToArray()
+            };
 
                 response.Status = true;
                 response.Message = "Success";
@@ -80,7 +78,7 @@ namespace MovieDatabase.Controllers
 
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 response.Status = false;
                 response.Message = "Something went wrong.";
@@ -90,6 +88,43 @@ namespace MovieDatabase.Controllers
 
             }
         }
+
+        [HttpGet]
+        [Route("Search/{searchText}")]
+
+        public IActionResult Get(string searchText)
+        {
+            BaseResponseModel response = new BaseResponseModel();
+
+            try
+            {
+                var searchedPerson = _dbContext.Person.Where(x => x.Name.Contains(searchText)).Select(x => new
+                {
+                    x.Id,
+                    x.Name 
+                }).ToList();
+
+
+                response.Status = true;
+                response.Message = "Success";
+                response.Data = searchedPerson;
+
+                return Ok(response);
+            }
+
+
+            catch(Exception)
+            {
+                response.Status = false;
+                response.Message = "Something went wrong.";
+
+                return BadRequest(response);
+
+            }
+        }
+
+
+
 
         [HttpPost]
         public IActionResult Post(ActorViewModel model)
@@ -129,7 +164,7 @@ namespace MovieDatabase.Controllers
                     return BadRequest(response);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
                 response.Status = false;
@@ -137,6 +172,93 @@ namespace MovieDatabase.Controllers
                 return BadRequest(response);
             }
         }
+        [HttpPut]
 
+        public IActionResult Put(ActorViewModel model)
+        {
+            BaseResponseModel response = new BaseResponseModel();
+
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var postedModel = _mapper.Map<Person>(model);
+
+                    if (model.Id <= 0)
+                    {
+                        response.Status = false;
+                        response.Message = "Invalid data entered.";
+
+                        return BadRequest(response);
+                    }
+
+                    var personDetails = _dbContext.Person.Where(x => x.Id == model.Id).AsNoTracking().FirstOrDefault();
+                    if (personDetails == null)
+                    {
+                        response.Status = false;
+                        response.Message = "Actor doesn't exist.";
+
+                        return BadRequest(response);
+                    }
+                    _dbContext.Person.Update(postedModel);
+                    _dbContext.SaveChanges();
+
+                    response.Status = true;
+                    response.Message = "Actor updated successfully!";
+                    response.Data = postedModel;
+
+                    return Ok(response);
+                }
+                else
+                {
+                    response.Status = false;
+                    response.Message = "Validation failed";
+                    response.Data = ModelState;
+
+                    return BadRequest(response);
+                }
+                
+            }
+            catch (Exception)
+            {
+                response.Status = false;
+                response.Message = "An error occured.";
+
+                return BadRequest(response);
+            }
+        }
+        [HttpDelete]
+        public IActionResult Delete(int id)
+        {
+            BaseResponseModel response = new BaseResponseModel();
+
+            try
+            {
+                var person = _dbContext.Person.Where(x => x.Id == id).FirstOrDefault();
+                if (person == null)
+                {
+                    response.Status = false;
+                    response.Message = "Validation failed";
+
+                    return BadRequest(response);
+                }
+
+                _dbContext.Person.Remove(person);
+                _dbContext.SaveChanges();
+
+                response.Status = true;
+                response.Message = "Actor deleted successfully!";
+
+                return Ok(response);
+
+            }
+            catch (Exception)
+            {
+                response.Status = false;
+                response.Message = "Something went wrong.";
+                return BadRequest(response);
+
+            }
+        }
     }
 }
